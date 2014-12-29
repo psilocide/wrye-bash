@@ -494,7 +494,7 @@ def unpack7z(srcFile, dstDir, progress=None):
             if progress:
                 progress(index,srcFile.s+u'\n'+_(u'Extracting files...')+u'\n'+extracted.s)
             index += 1
-    result = ins.close()
+    result = ins.close()# TODO(ut) PyCharm: close() does not return anything (?)
     if result:
         raise StateError(srcFile.s+u': Extraction failed:\n'+u'\n'.join(errorLine))
 

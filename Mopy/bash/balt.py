@@ -2263,7 +2263,7 @@ class Link(object):
 
         Called from AppendToMenu - DO NOT call directly. If you need to use the
         initialized data in setting instance attributes (such as text) override
-        and always _call super_ when overriding. ##: Needs work (Tank, docs)
+        and always _call super_ when overriding. ##: Needs work (docs)
         :param window: the element the menu is being popped from (usually a
         UIList subclass)
         :param data: the selected items when the menu is appended or None.
@@ -2273,8 +2273,6 @@ class Link(object):
         # Tank, List, Panel, wx.Button, BashStatusbar etc instances
         self.window = window
         self.selected = data
-        if isinstance(window,Tank): # TODO(ut): eliminate this
-            self.gTank = window
 
     def AppendToMenu(self,menu,window,data):
         """Creates a wx menu item and appends it to :menu.
@@ -2562,7 +2560,7 @@ class Tank_Delete(ItemLink): # was used in BAIN would not refresh - used in Peop
 
     def Execute(self,event):
         with BusyCursor():
-            self.gTank.DeleteSelected()
+            self.window.DeleteSelected()
 
 # wx Wrappers -----------------------------------------------------------------
 #------------------------------------------------------------------------------

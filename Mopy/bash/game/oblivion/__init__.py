@@ -25,9 +25,10 @@
 """This modules defines static data for use by bush, when
    TES IV: Oblivion is set at the active game."""
 
+import re
+import struct
 from constants import bethDataFiles, allBethFiles
 from ... import brec
-from ...brec import *
 
 # Util Constants ---------------------------------------------------------------
 #--Null strings (for default empty byte arrays)
@@ -1500,7 +1501,15 @@ class esp:
     recordTypes = set(topTypes + 'GRUP,TES4,ROAD,REFR,ACHR,ACRE,PGRD,LAND,INFO'.split(','))
 
 #------------------------------------------------------------------------------
-from records import * # MUST BE AFTER esp which is imported in records.py
+from records import MreActi, MreAlch, MreAmmo, MreAnio, MreAppa, MreArmo, \
+    MreBook, MreBsgn, MreClas, MreClot, MreCont, MreCrea, MreDoor, MreEfsh, \
+    MreEnch, MreEyes, MreFact, MreFlor, MreFurn, MreGras, MreHair, MreIngr, \
+    MreKeym, MreLigh, MreLscr, MreLvlc, MreLvli, MreLvsp, MreMgef, MreMisc, \
+    MreNpc, MrePack, MreQust, MreRace, MreScpt, MreSgst, MreSlgm, MreSoun, \
+    MreSpel, MreStat, MreTree, MreWatr, MreWeap, MreWthr, MreClmt, MreCsty, \
+    MreIdle, MreLtex, MreRegn, MreSbsp, MreSkil, RecordHeader, MreAchr, MreAcre, \
+    MreCell, MreGmst, MreRefr, MreRoad, MreHeader, MreWrld, MreDial, MreInfo
+from ...brec import MreGlob
 #------------------------------------------------------------------------------
 
 #--Mergeable record types

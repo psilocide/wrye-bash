@@ -24,7 +24,7 @@
 
 """This modules defines static data for use by bush, when TES V:
    Skyrim is set at the active game."""
-
+import re
 from constants import bethDataFiles, allBethFiles
 from ... import brec
 from ...brec import *
@@ -1408,7 +1408,10 @@ class esp:
     recordTypes = set(topTypes + 'GRUP,TES4,REFR,ACHR,ACRE,LAND,INFO,NAVM,PHZD,PGRE'.split(','))
 
 #------------------------------------------------------------------------------
-from records import * # MUST BE HERE otherwise all hell breaks loose
+from records import MreAact, MreActi, MreAddn, MreAmmo, MreAnio, MreAppa, \
+    MreArma, MreArmo, MreArto, MreAspc, MreAstp, MreCobj, MreGmst, MreLvli, \
+    MreLvln, MreLvsp, MreMisc, RecordHeader, MreHeader
+from ...brec import MreGlob
 #------------------------------------------------------------------------------
 # Unused records, they have empty GRUP in skyrim.esm---------------------------
 # CLDC ------------------------------------------------------------------------

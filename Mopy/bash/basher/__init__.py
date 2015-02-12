@@ -459,12 +459,12 @@ class List(balt.UIList):
              reverse the sort order.
          -2: Use current reverse setting for sort variable.
         """
+        oldcol = self.sort
         #--Sort Column
-        if not col:
-            col = self.sort
+        col = col or self.sort
         #--Reverse
         oldReverse = self.colReverse.get(col,0)
-        if col == 'Load Order': #--Disallow reverse for load
+        if col == 'Load Order' or col == 'Current Order': #--Disallow reverse for load
             reverse = 0
         elif reverse == -1 and col == self.sort:
             reverse = not oldReverse
@@ -473,26 +473,20 @@ class List(balt.UIList):
         #--Done
         self.sort = col
         self.colReverse[col] = reverse
-        return col,reverse
+        return col, reverse, oldcol
 
     def SortItems(self,col=None,reverse=-2):
-        # bit complex due to sorting by name - simplify if def_key is always None
-        oldcol = self.sort
-        col, reverse = self.GetSortSettings(col, reverse)
-        #--Start with sort by name
-        self.items.sort(key=None)
+        col, reverse, oldcol = self.GetSortSettings(col, reverse)
         def key(k): # if key is None then keep it None else provide self
             k = self.sort_keys[k]
             return k if k is None else partial(k, self)
         def_key = key(self.default_sort_col)
         if col != self.default_sort_col:
             #--Default sort, if not already applied
-            if def_key is not None: self.items.sort(key=def_key)
+            self.items.sort(key=def_key)
             self.items.sort(key=key(col), reverse=bool(reverse))
         else:
-            if def_key is not None: self.items.sort(key=def_key,
-                                                    reverse=bool(reverse))
-            elif reverse: self.items.reverse()
+            self.items.sort(key=def_key, reverse=bool(reverse))
         self._setColumnSortIndicator(col, oldcol, reverse)
         return col, reverse
 

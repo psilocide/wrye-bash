@@ -1906,9 +1906,9 @@ class UIList(wx.Panel):
     #--Populate Columns -------------------------------------------------------
     def PopulateColumns(self):
         """Create/name columns in ListCtrl."""
-        cols = self.cols
-        self.numCols = len(cols)
-        colDict = self.colDict = {} # used in setting sort indicator in modList
+        cols = self.cols # this may be updated in List_Column.Execute()
+        self.numCols = len(cols) # used in List.PopulateItem()
+        colDict = self.colDict = {} # used in setting column sort indicator
         listCtrl = self._gList
         for colDex in xrange(self.numCols):
             colKey = cols[colDex]
@@ -1927,7 +1927,6 @@ class UIList(wx.Panel):
                 elif column.GetText() not in self.cols:
                     # Column that doesn't exist anymore
                     listCtrl.DeleteColumn(colDex)
-                    colDex -= 1
                 else: # New column
                     listCtrl.InsertColumn(colDex, colName, colAlign)
                     listCtrl.SetColumnWidth(colDex, colWidth)

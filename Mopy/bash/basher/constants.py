@@ -272,9 +272,7 @@ settingDefaults = { # TODO(178): belongs to bosh (or better to a settings packag
         'Num':30,
         'Current Order':60,
         },
-    'bash.masters.colAligns': {
-        'Save Order':1,
-        },
+    'bash.masters.colAligns': {},
     #--Wrye Bash: Mod Docs
     'bash.modDocs.show': False,
     'bash.modDocs.size': (300,400),

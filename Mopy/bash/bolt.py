@@ -1876,10 +1876,6 @@ class TankData:
         """Returns a (string) report on the refresh operation."""
         return None
 
-    def getSorted(self,column,reverse):
-        """Returns items sorted according to column and reverse."""
-        raise AbstractError
-
     #--Item Info
     def getColumns(self,item=None):
         """Returns text labels for item or for row header if item == None."""

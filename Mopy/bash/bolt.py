@@ -492,6 +492,7 @@ class Path(object):
     #--Class Vars/Methods -------------------------------------------
     norm_path = {} #--Dictionary of paths
     mtimeResets = [] #--Used by getmtime
+    sys_fs_enc = sys.getfilesystemencoding() or 'mbcs'
 
     @staticmethod
     def get(name):
@@ -653,8 +654,25 @@ class Path(object):
             return dirJoin(self.tail+u'.tmp')
 
     @staticmethod
-    def tempDir(prefix=None):
-        return GPath(tempfile.mkdtemp(prefix=prefix))
+    def tempDir(prefix=None): # FIXME 180 - test, cleanup
+        try: # workaround for http://bugs.python.org/issue1681974 see there
+            return GPath(tempfile.mkdtemp(prefix=prefix))
+        except UnicodeDecodeError:
+            try:
+                traceback.print_exc()
+                print 'trying to pass temp dir in'
+                tempdir = unicode(tempfile.gettempdir(), Path.sys_fs_enc)
+                return GPath(tempfile.mkdtemp(prefix=prefix, dir=tempdir))
+            except UnicodeDecodeError:
+                try:
+                    traceback.print_exc()
+                    print 'trying to encode temp dir prefix'
+                    return GPath(tempfile.mkdtemp(
+                        prefix=prefix.encode(Path.sys_fs_enc)).decode(
+                        Path.sys_fs_enc))
+                except:
+                    print 'Failed to create tmp dir, Bash will not function correctly'
+                    traceback.print_exc()
 
     @staticmethod
     def baseTempDir():

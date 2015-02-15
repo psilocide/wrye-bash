@@ -964,7 +964,6 @@ class ObseFile:
 
     def load(self):
         """Read file."""
-        import binascii
         size = self.path.size
         with self.path.open('rb') as ins:
             buff = ins.read(size)

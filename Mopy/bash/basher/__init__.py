@@ -591,8 +591,8 @@ class MasterList(_ModsSortMixin, List):
                 value = u'%02X' % (self.fileOrderItems.index(itemId),)
             elif col == 'Current Order':
                 #print itemId
-                if masterName in bosh.modInfos.plugins.LoadOrder:
-                    value = u'%02X' % (self.loadOrderNames.index(masterName),)
+                if masterName in bosh.modInfos.ordered:
+                    value = u'%02X' % (bosh.modInfos.ordered.index(masterName),)
                 else:
                     value = u''
             #--Insert/Set Value

@@ -1986,7 +1986,8 @@ class UIList(wx.Panel):
         * 'CURRENT': Same as current order for column.
         * 'INVERT': Invert if column is same as current sort column.
         """
-        items = self._SortItems(column, reverse, items=self.data.keys())
+        _items = self.data.keys() if isinstance(self, Tank) else self.items
+        items = self._SortItems(column, reverse, items=_items)
         self._gList.ReorderItems(items)
 
     def _GetSortSettings(self,column,reverse):
@@ -2047,6 +2048,15 @@ class UIList(wx.Panel):
             listCtrl.SetColumnImage(self.colDict[col],
                                     self.sm_dn if reverse else self.sm_up)
         except: pass
+
+    #--Item/Index Translation -------------------------------------------------
+    def GetItem(self,index):
+        """Returns item for specified list index."""
+        return self._gList.FindItemAt(index)
+
+    def GetIndex(self,item):
+        """Returns index for specified item."""
+        return self._gList.FindIndexOf(item)
 
     #--Populate Columns -------------------------------------------------------
     def PopulateColumns(self):
@@ -2144,15 +2154,6 @@ class Tank(UIList):
         self.data.moveArchives(self.GetSelected(), newPos)
         self.data.refresh(what='N')
         self.RefreshUI()
-
-    #--Item/Id/Index Translation ----------------------------------------------
-    def GetItem(self,index):
-        """Returns item for specified list index."""
-        return self._gList.FindItemAt(index)
-
-    def GetIndex(self,item):
-        """Returns index for specified item."""
-        return self._gList.FindIndexOf(item)
 
     #--Updating/Sorting/Refresh -----------------------------------------------
     def UpdateItem(self, index, item=None, selected=tuple(), newItem=False):

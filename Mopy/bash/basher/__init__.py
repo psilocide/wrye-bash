@@ -364,18 +364,23 @@ class List(balt.UIList):
         # do it _before_ sorting
         if selected == 'SAME': selected = set(self.GetSelected())
         #--Reget items
-        self.GetItems()
-        self._SortItems(col,reverse)
-        #--Delete Current items
+        items = set(self.GetItems())
         listCtrl = self._gList
-        listItemCount = listCtrl.GetItemCount()
-        #--Populate items
-        for itemDex in xrange(len(self.items)):
-            mode = int(itemDex >= listItemCount)
-            self.PopulateItem(itemDex,mode,selected)
-        #--Delete items?
-        while listCtrl.GetItemCount() > len(self.items):
-            listCtrl.DeleteItem(listCtrl.GetItemCount()-1)
+        index = 0
+        #--Update existing items.
+        while index < listCtrl.GetItemCount():
+            item = self.GetItem(index)
+            if item not in items:
+                listCtrl.RemoveItemAt(index)
+            else:
+                self.PopulateItem(index,selected=selected)
+                items.remove(item)
+                index += 1
+        #--Add remaining new items
+        for item in filter(lambda x: x in items, self.items): # otherwise index out of bounds
+            self.PopulateItem(item, mode=True, selected=selected) ##: yak
+        #--Sort
+        self.SortItems(col, reverse)
 
     def GetSelected(self):
         """Return list of items selected (hilighted) in the interface."""
@@ -389,7 +394,7 @@ class List(balt.UIList):
             if itemDex == -1 or itemDex >= len(self.items):
                 break
             else:
-                selected.append(self.items[itemDex])
+                selected.append(self.GetItem(itemDex))
         return selected
 
     def DeleteSelected(self,shellUI=False,noRecycle=False):
@@ -757,10 +762,11 @@ class INIList(List):
         self.panel.SetStatusCount()
 
     def PopulateItem(self,itemDex,mode=0,selected=set()):
-        #--String name of item?
+        #--String name of item? ##: YAK
         if not isinstance(itemDex,int):
+            fileName = itemDex
             itemDex = self.items.index(itemDex)
-        fileName = GPath(self.items[itemDex])
+        else: fileName = GPath(self.GetItem(itemDex))
         fileInfo = self.data[fileName]
         cols = self.cols
         listCtrl = self._gList
@@ -1026,8 +1032,9 @@ class ModList(_ModsSortMixin, List):
     def PopulateItem(self,itemDex,mode=0,selected=set()):
         #--String name of item?
         if not isinstance(itemDex,int):
+            fileName = itemDex
             itemDex = self.items.index(itemDex)
-        fileName = GPath(self.items[itemDex])
+        else: fileName = GPath(self.GetItem(itemDex))
         fileInfo = self.data[fileName]
         fileBashTags = bosh.modInfos[fileName].getBashTags()
         cols = self.cols
@@ -2007,8 +2014,9 @@ class SaveList(List):
     def PopulateItem(self,itemDex,mode=0,selected=set()):
         #--String name of item?
         if not isinstance(itemDex,int):
+            fileName = itemDex
             itemDex = self.items.index(itemDex)
-        fileName = GPath(self.items[itemDex])
+        else: fileName = GPath(self.GetItem(itemDex))
         fileInfo = self.data[fileName]
         cols = self.cols
         listCtrl = self._gList
@@ -3199,7 +3207,7 @@ class ScreensList(List):
         """Double click a screenshot"""
         (hitItem,hitFlag) = self._gList.HitTest(event.GetPosition())
         if hitItem < 0: return
-        item = self.items[hitItem]
+        item = self.GetItem(hitItem)
         bosh.screensData.dir.join(item).start()
 
     def OnBeginEditLabel(self,event):
@@ -3268,8 +3276,9 @@ class ScreensList(List):
     def PopulateItem(self,itemDex,mode=0,selected=set()):
         #--String name of item?
         if not isinstance(itemDex,int):
+            fileName = itemDex
             itemDex = self.items.index(itemDex)
-        fileName = GPath(self.items[itemDex])
+        else: fileName = GPath(self.GetItem(itemDex))
         fileInfo = self.data[fileName]
         cols = self.cols
         for colDex in range(self.numCols):
@@ -3378,8 +3387,9 @@ class BSAList(List):
     def PopulateItem(self,itemDex,mode=0,selected=set()):
         #--String name of item?
         if not isinstance(itemDex,int):
+            fileName = itemDex
             itemDex = self.items.index(itemDex)
-        fileName = GPath(self.items[itemDex])
+        else: fileName = GPath(self.GetItem(itemDex))
         fileInfo = self.data[fileName]
         cols = self.cols
         for colDex in range(self.numCols):
@@ -3629,8 +3639,9 @@ class MessageList(List):
     def PopulateItem(self,itemDex,mode=0,selected=set()):
         #--String name of item?
         if not isinstance(itemDex,int):
+            item = itemDex
             itemDex = self.items.index(itemDex)
-        item = self.items[itemDex]
+        else: item = self.GetItem(itemDex)
         subject,author,date = self.data[item][:3]
         cols = self.cols
         for colDex in range(self.numCols):

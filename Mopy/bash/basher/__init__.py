@@ -453,11 +453,6 @@ class List(balt.UIList):
         settings.setChanged(self.colWidthsKey)
         event.Skip()
 
-    #--Item Sort
-    def OnColumnClick(self, event):
-        """List OnColumnClick override - cf Tank."""
-        self.PopulateItems(self.cols[event.GetColumn()], 'INVERT')
-
 class _ModsSortMixin(object):
 
     _esmsFirstCols = balt.UIList.nonReversibleCols
@@ -598,7 +593,7 @@ class MasterList(_ModsSortMixin, List):
                     value = u''
             #--Insert/Set Value
             if mode and (colDex == 0):
-                listCtrl.InsertStringItem(itemDex, value)
+                listCtrl.InsertListCtrlItem(itemDex, value, itemId)
             else:
                 listCtrl.SetStringItem(itemDex, colDex, value)
         #--Font color
@@ -776,7 +771,7 @@ class INIList(List):
             elif col == 'Installer':
                 value = self.data.table.getItem(fileName, 'installer', u'')
             if mode and colDex == 0:
-                listCtrl.InsertStringItem(itemDex, value)
+                listCtrl.InsertListCtrlItem(itemDex, value, fileName)
             else:
                 listCtrl.SetStringItem(itemDex, colDex, value)
         status = fileInfo.getStatus()
@@ -1070,7 +1065,7 @@ class ModList(_ModsSortMixin, List):
                 value = u'-'
             #--Insert/SetString
             if mode and (colDex == 0):
-                listCtrl.InsertStringItem(itemDex, value)
+                listCtrl.InsertListCtrlItem(itemDex, value, fileName)
             else:
                 listCtrl.SetStringItem(itemDex, colDex, value)
         #--Image
@@ -2035,7 +2030,7 @@ class SaveList(List):
             else:
                 value = u'-'
             if mode and (colDex == 0):
-                listCtrl.InsertStringItem(itemDex, value)
+                listCtrl.InsertListCtrlItem(itemDex, value, fileName)
             else:
                 listCtrl.SetStringItem(itemDex, colDex, value)
         #--Image
@@ -3286,7 +3281,7 @@ class ScreensList(List):
             else:
                 value = u'-'
             if mode and (colDex == 0):
-                self._gList.InsertStringItem(itemDex, value)
+                self._gList.InsertListCtrlItem(itemDex, value, fileName)
             else:
                 self._gList.SetStringItem(itemDex, colDex, value)
         #--Selection State
@@ -3398,7 +3393,7 @@ class BSAList(List):
             else:
                 value = u'-'
             if mode and (colDex == 0):
-                self._gList.InsertStringItem(itemDex, value)
+                self._gList.InsertListCtrlItem(itemDex, value, fileName)
             else:
                 self._gList.SetStringItem(itemDex, colDex, value)
         #--Image
@@ -3649,7 +3644,7 @@ class MessageList(List):
             else:
                 value = u'-'
             if mode and (colDex == 0):
-                self._gList.InsertStringItem(itemDex, value)
+                self._gList.InsertListCtrlItem(itemDex, value, item)
             else:
                 self._gList.SetStringItem(itemDex, colDex, value)
         #--Selection State

@@ -1872,10 +1872,6 @@ class TankData:
         """Refreshes underlying data as needed."""
         pass
 
-    def getRefreshReport(self):
-        """Returns a (string) report on the refresh operation."""
-        return None
-
     #--Item Info
     def getColumns(self,item=None):
         """Returns text labels for item or for row header if item == None."""

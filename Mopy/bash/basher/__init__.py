@@ -215,7 +215,7 @@ tabInfo = {
     'Screenshots': ['ScreensPanel', _(u"Screenshots"), None],
     'PM Archive':['MessagePanel', _(u"PM Archive"), None],
     'People':['PeoplePanel', _(u"People"), None],
-    }
+}
 
 from .dialogs import ListBoxes # TODO(ut): cyclic import
 # Windows ---------------------------------------------------------------------
@@ -1341,7 +1341,7 @@ class ModList(List):
                         msg = _(u'Plugins may not be sorted before the game\'s master file.')
                     else:
                         msg = e.msg
-                    balt.showError(self,_(u'%s') % msg)
+                    balt.showError(self, u'%s' % msg)
             #--Select?
             else:
                 ## For now, allow selecting unicode named files, for testing

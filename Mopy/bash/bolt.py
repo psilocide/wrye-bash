@@ -1839,29 +1839,12 @@ class Table(DataDict):
 #------------------------------------------------------------------------------
 class TankData:
     """Data source for a Tank table."""
-    ##: DEPRECATED: at least bin the param interface - belongs to Panels/UIList
+    # DEPRECATED: belongs to Panels/UIList
 
     def __init__(self,params):
-        """Initialize."""
-        self.tankParams = params
         #--Default settings. Subclasses should define these.
-        self.tankKey = self.__class__.__name__
-        self.tankColumns = [] #--Full possible set of columns.
         self.title = self.__class__.__name__
         self.hasChanged = False
-
-    #--Parameter access
-    def getParam(self,key,default=None):
-        """Get a GUI parameter.
-        Typical Parameters:
-        * columns: list of current columns.
-        * colNames: column_name dict
-        * colWidths: column_width dict
-        * colAligns: column_align dict
-        * colReverse: column_reverse dict (colReverse[column] = True/False)
-        * colSort: current column being sorted on
-        """
-        return self.tankParams.get(self.tankKey+'.'+key,default)
 
     #--Collection
     def setChanged(self,hasChanged=True):
@@ -1871,13 +1854,6 @@ class TankData:
     def refresh(self):
         """Refreshes underlying data as needed."""
         pass
-
-    #--Item Info
-    def getColumns(self,item=None):
-        """Returns text labels for item or for row header if item == None."""
-        columns = self.getParam('columns',self.tankColumns)
-        if item is None: return columns[:]
-        raise AbstractError
 
     def getName(self,item):
         """Returns a string name of item for use in dialogs, etc."""

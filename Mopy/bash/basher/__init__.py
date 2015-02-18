@@ -477,9 +477,8 @@ class List(balt.UIList):
 
     def SortItems(self,col=None,reverse=-2):
         # bit complex due to sorting by name - simplify if def_key is always None
+        oldcol = self.sort
         col, reverse = self.GetSortSettings(col, reverse)
-        oldcol = settings[self.keyPrefix + '.sort']
-        settings[self.keyPrefix + '.sort'] = col
         #--Start with sort by name
         self.items.sort(key=None)
         def key(k): # if key is None then keep it None else provide self
@@ -669,6 +668,7 @@ class MasterList(List):
 
     #--Sort Items
     def SortItems(self,col=None,reverse=-2):
+        oldcol = self.sort
         (col, reverse) = self.GetSortSettings(col,reverse)
         #--Sort
         data = self.data
@@ -703,6 +703,7 @@ class MasterList(List):
         settings['bash.masters.esmsFirst'] = self.esmsFirst
         if self.esmsFirst or col == 'Load Order':
             self.items.sort(key=lambda a: not data[a].isEsm())
+        self._setColumnSortIndicator(col, oldcol, reverse)
 
     #--Relist
     def ReList(self):
@@ -1292,8 +1293,7 @@ class ModList(List):
         """Char event: Reorder, Check/Uncheck."""
         ##Ctrl+Up and Ctrl+Down
         if ((event.CmdDown() and event.GetKeyCode() in balt.wxArrows) and
-            (settings['bash.mods.sort'] == 'Load Order')
-            ):
+            (self.sort == 'Load Order')):
                 orderKey = lambda x: self.items.index(x)
                 moveMod = 1 if event.GetKeyCode() in balt.wxArrowDown else -1
                 isReversed = (moveMod != -1)
@@ -1426,7 +1426,7 @@ class _SashDetailsPanel(SashPanel):
 
 class ModDetails(_SashDetailsPanel):
     """Details panel for mod tab."""
-    keyPrefix = 'bash.mods.details'
+    keyPrefix = 'bash.mods.details' # used in sash/scroll position
 
     def __init__(self, parent):
         super(ModDetails, self).__init__(parent)
@@ -2188,7 +2188,7 @@ class SaveList(List):
 #------------------------------------------------------------------------------
 class SaveDetails(_SashDetailsPanel):
     """Savefile details panel."""
-    keyPrefix = 'bash.saves.details'
+    keyPrefix = 'bash.saves.details' # used in sash/scroll position
 
     def __init__(self,parent):
         super(SaveDetails, self).__init__(parent)

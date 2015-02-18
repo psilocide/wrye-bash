@@ -1839,22 +1839,19 @@ class UIList(wx.Panel):
         # Columns
         self.PopulateColumns()
 
-    # Column properties - consider moving to ListCtrl
+    # Column properties - consider moving to a ListCtrl mixin
     @property
     def colAligns(self):
         return bosh.settings.get(self.keyPrefix + '.colAligns', {})
-
     @property
-    def colWidths(self): return bosh.settings.get(self.colWidthsKey, {})
-
+    def colWidths(self): return bosh.settings.getChanged(self.colWidthsKey, {})
     @property
     def colReverse(self): # not sure why it gets it changed but no harm either
         """Dictionary column->isReversed."""
         return bosh.settings.getChanged(self.keyPrefix + '.colReverse', {})
-
     @property
     def cols(self): return bosh.settings[self.keyPrefix + '.cols']
-
+    # the current sort column
     @property
     def sort(self):
         return bosh.settings.get(self.keyPrefix + '.sort',
@@ -1959,8 +1956,8 @@ class UIList(wx.Panel):
     def DeleteAllItems(self):
         self._gList.DeleteAllItems()
 
-    def EnsureVisible(self, name): ##: TANK ONLY
-        raise AbstractError
+    def EnsureVisible(self, name):
+        self._gList.EnsureVisible(self.GetIndex(name))
 
     def OpenSelected(self, selected=None):
         """Open selected files with default program."""
@@ -2245,9 +2242,6 @@ class Tank(UIList):
         listCtrl = self._gList
         return [self.GetItem(x) for x in xrange(listCtrl.GetItemCount())
             if listCtrl.GetItemState(x,wx.LIST_STATE_SELECTED)]
-
-    def EnsureVisible(self, name): ##: TANK ONLY
-        self._gList.EnsureVisible(self.GetIndex(name))
 
     #--Event Handlers -------------------------------------
     def OnItemSelected(self,event):

@@ -341,8 +341,6 @@ class List(balt.UIList):
         #--Items
         self.sortDirty = 0
         self.PopulateItems()
-        #--Events: Items
-        self.hitIcon = 0
         #--Events: Columns
         self.checkcol = []
         self._gList.Bind(wx.EVT_UPDATE_UI, self.onUpdateUI)
@@ -705,7 +703,7 @@ class INIList(List):
     mainMenu = Links()  #--Column menu
     itemMenu = Links()  #--Single item menu
     _shellUI = True
-    sort_keys = {'File': None, # lambda _self, a: attrgetter('cext'), ##: why ?
+    sort_keys = {'File': None,
                  'Installer': lambda _self, a: bosh.iniInfos.table.getItem(
                      a, 'installer', u''),
                 }
@@ -833,17 +831,14 @@ class INIList(List):
                        )
             if not balt.askContinue(self,message,'bash.iniTweaks.continue',_(u"INI Tweaks")):
                 return
-        dir = tweak.dir
         #--No point applying a tweak that's already applied
-        file = dir.join(self.items[hitItem])
-        self.data.ini.applyTweakFile(file)
+        file_ = tweak.dir.join(self.items[hitItem])
+        self.data.ini.applyTweakFile(file_)
         self.RefreshUI('VALID')
         iniPanel.iniContents.RefreshUI()
         iniPanel.tweakContents.RefreshUI(self.data[0])
 
-    def OnItemSelected(self, event):
-        """This is set by the IniPanel to its OnSelectTweak()."""
-        event.Skip()
+    def OnItemSelected(self, event): self.panel.OnSelectTweak(event)
 
 #------------------------------------------------------------------------------
 class INITweakLineCtrl(wx.ListCtrl):
@@ -956,7 +951,7 @@ class ModList(_ModsSortMixin, List):
     mainMenu = Links() #--Column menu
     itemMenu = Links() #--Single item menu
     sort_keys = {
-        'File': None, #lambda _self, a: attrgetter('cext'), ##: why ?
+        'File': None,
         'Author': lambda self_, a: self_.data[a].header.author.lower(),
         'Rating': lambda self_, a: bosh.modInfos.table.getItem(
                      a, 'rating', u''),
@@ -1693,7 +1688,6 @@ class INIPanel(SashPanel):
                                       choices=self.sortKeys)
         #--Events
         self.comboBox.Bind(wx.EVT_COMBOBOX,self.OnSelectDropDown)
-        self.uiList.OnItemSelected = lambda s, e: self.OnSelectTweak(e)
         #--Layout
         iniSizer = vSizer(
                 (hSizer(
@@ -2340,8 +2334,6 @@ class InstallersList(balt.Tank):
     def __init__(self, parent, data, keyPrefix, details=None):
         balt.Tank.__init__(self, parent, data, keyPrefix, details=details,
                            dndList=True, dndFiles=True, dndColumns=['Order'])
-        self.hitItem = None
-        self.hitTime = 0
 
     #--Item Info
     def getColumns(self, item):

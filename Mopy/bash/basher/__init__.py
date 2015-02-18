@@ -112,8 +112,6 @@ isUAC = False      # True if the game is under UAC protection
 # Singletons ------------------------------------------------------------------
 modDetails = None
 saveDetails = None
-gInstallers = None
-gPeople = None # New global - yak
 
 # Settings --------------------------------------------------------------------
 settings = None
@@ -134,18 +132,20 @@ def SetUAC(item):
         else:
             balt.setUAC(item,isUAC)
 
-# Tank link mixins to access the Tank data - not final
+##: DEPRECATED: Tank link mixins to access the Tank data. They should be
+# replaced by self.window.method but I keep them till encapsulation reduces
+# their use to a minimum
 class Installers_Link(ItemLink):
     """InstallersData mixin"""
-
     @property
-    def idata(self): return gInstallers.data # InstallersData singleton
+    def idata(self): return self.window.data # InstallersData singleton
+    @property
+    def iPanel(self): return self.window.panel # ex gInstallers InstallersPanel
 
 class People_Link(Link):
     """PeopleData mixin"""
-
     @property
-    def pdata(self): return gPeople.data # PeopleData singleton
+    def pdata(self): return self.window.data # PeopleData singleton
 
 # Exceptions ------------------------------------------------------------------
 class BashError(BoltError): pass
@@ -2596,8 +2596,8 @@ class InstallersList(balt.Tank):
             BashFrame.modList.RefreshUI()
             if BashFrame.iniList:
                 BashFrame.iniList.RefreshUI()
-        gInstallers.frameActivated = True
-        gInstallers.ShowPanel()
+        self.window.panel.frameActivated = True
+        self.window.panel.ShowPanel()
 
     def DeleteSelected(self, shellUI=False, noRecycle=False, _refresh=False):
         super(InstallersList, self).DeleteSelected(shellUI, noRecycle, _refresh)
@@ -2666,7 +2666,7 @@ class InstallersList(balt.Tank):
         if index == -1:
             self.data.addMarker(u'====')
             self.data.refresh(what='OS')
-            gInstallers.RefreshUIMods()
+            self.window.panel.RefreshUIMods()
             index = self.GetIndex(GPath(u'===='))
         if index != -1:
             self.ClearSelected()
@@ -2697,11 +2697,7 @@ class InstallersPanel(SashTankPanel):
 
     def __init__(self,parent):
         """Initialize."""
-        global gInstallers
-        gInstallers = self
-        from . import installers_links, installer_links, dialogs
-        installers_links.gInstallers = installer_links.gInstallers = \
-            dialogs.gInstallers = self
+        BashFrame.iPanel = self
         data = bosh.InstallersData()
         SashTankPanel.__init__(self,data,parent)
         left,right = self.left,self.right
@@ -3775,8 +3771,6 @@ class PeoplePanel(SashTankPanel):
 
     def __init__(self,parent):
         """Initialize."""
-        global gPeople
-        gPeople = self
         data = bosh.PeopleData()
         SashTankPanel.__init__(self,data,parent)
         left,right = self.left,self.right
@@ -4250,6 +4244,8 @@ class BashFrame(wx.Frame):
     saveList = None
     iniList = None
     modList = None
+    # Panels - use sparingly
+    iPanel = None # BAIN panel
     # the status bar - used by the Panels to SetStatusCount()
     statusBar = None
 
@@ -4402,7 +4398,7 @@ class BashFrame(wx.Frame):
         if popInis:
             BashFrame.iniList.RefreshUI(popInis)
         #--Current notebook panel
-        if gInstallers: gInstallers.frameActivated = True
+        if self.iPanel: self.iPanel.frameActivated = True
         self.notebook.currentPage.ShowPanel()
         #--WARNINGS----------------------------------------
         #--Does plugins.txt have any bad or missing files?

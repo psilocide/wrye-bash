@@ -2154,7 +2154,7 @@ class Tank(UIList):
         self.RefreshUI()
 
     #--Updating/Sorting/Refresh -----------------------------------------------
-    def UpdateItem(self, index, item=None, selected=tuple(), newItem=False):
+    def UpdateItem(self, index, item=None, newItem=False):
         """Populate Item for specified item."""
         if index < 0: return
         data,listCtrl = self.data,self._gList
@@ -2174,16 +2174,13 @@ class Tank(UIList):
         else: gItem.SetTextColour(listCtrl.GetTextColour())
         if backKey: gItem.SetBackgroundColour(colors[backKey])
         else: gItem.SetBackgroundColour(self.defaultTextBackground)
-##        gItem.SetState((0,wx.LIST_STATE_SELECTED)[item in selected])
         listCtrl.SetItem(gItem)
 
-    def UpdateItems(self,selected='SAME'):
+    def UpdateItems(self):
         """Update all items."""
         listCtrl = self._gList
         items = set(self.data.keys())
         index = 0
-        #--Items to select afterwards. (Defaults to current selection.)
-        if selected == 'SAME': selected = set(self.GetSelected())
         #--Update existing items.
         self.mouseTexts.clear()
         while index < listCtrl.GetItemCount():
@@ -2191,12 +2188,12 @@ class Tank(UIList):
             if item not in items:
                 listCtrl.RemoveItemAt(index)
             else:
-                self.UpdateItem(index,item,selected)
+                self.UpdateItem(index,item)
                 items.remove(item)
                 index += 1
         #--Add remaining new items
         for item in items:
-            self.UpdateItem(index, item, selected, newItem=True)
+            self.UpdateItem(index, item, newItem=True)
             index += 1
         #--Sort
         self.SortItems()
@@ -2207,19 +2204,14 @@ class Tank(UIList):
 
     def RefreshUI(self,items='ALL',details='SAME'):
         """Refreshes UI for specified file."""
-        selected = self.GetSelected()
         if details == 'SAME':
             details = self.GetDetailsItem()
-        elif details:
-            if isinstance(details, basestring):
-                selected = tuple([details]) # see People_AddNew
-            else: selected = tuple(details)
         if items == 'ALL':
-            self.UpdateItems(selected=selected)
+            self.UpdateItems()
         else: #--Iterable
             for index in xrange(self._gList.GetItemCount()):
                 if self.GetItem(index) in set(items):
-                    self.UpdateItem(index,None,selected=selected)
+                    self.UpdateItem(index,None)
         self.RefreshDetails(details)
         self.panel.SetStatusCount()
 

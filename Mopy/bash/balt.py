@@ -2216,8 +2216,6 @@ class Tank(UIList):
             else: selected = tuple(details)
         if items == 'ALL':
             self.UpdateItems(selected=selected)
-        elif items in self.data:
-            self.UpdateItem(self.GetIndex(items),items,selected=selected)
         else: #--Iterable
             for index in xrange(self._gList.GetItemCount()):
                 if self.GetItem(index) in set(items):

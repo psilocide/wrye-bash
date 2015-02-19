@@ -7976,7 +7976,7 @@ class InstallersData(bolt.TankData, DataDict):
             #--Apply settings to the new archive
             iArchive = self[destArchive]
             converter.applySettings(iArchive)
-            #--RefreshUI
+            #--Refresh UI
             pArchive = dirs['installers'].join(destArchive)
             iArchive.refreshed = False
             iArchive.refreshBasic(pArchive,SubProgress(progress,0.99,1.0),True)

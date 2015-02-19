@@ -238,7 +238,7 @@ class NotebookPanel(wx.Panel):
     def SetStatusCount(self):
         """Sets status bar count field."""
         if Link.Frame.notebook.currentPage is self: ##: we need to check if
-        # we are the current tab because RefreshUI path may call RefreshUI
+        # we are the current tab because Refresh UI path may call Refresh UI
         # of other tabs too - this results for instance in mods count
         # flickering when deleting a save in the saves tab - ##: hunt down
             BashFrame.statusBar.SetStatusText(self._sbText(), 2)
@@ -377,6 +377,36 @@ class List(balt.UIList):
             self.PopulateItem(item, mode=True, selected=selected) ##: yak
         #--Sort
         self.SortItems(col, reverse)
+
+    __sentinel = ()
+    def RefreshUI(self, files=__sentinel, detail='SAME', **kwargs):
+        """Populate specified files or ALL files, set status bar count
+        and details item if applicable."""
+        # TODO(ut) needs work:
+        ##: Currently the code uses PopulateItems and Refresh UI at random.
+        # PopulateItems must be encapsulated and all calls to it must pass
+        # through Refresh UI. Uses of the later must be optimized - pass in
+        # ONLY the items we need refreshed - most of the time Refresh UI calls
+        #  PopulateItems on ALL items - a nono. Refresh UI has 140 uses...
+        ##: the isinstance calls are evil - make sure the first is needed
+        # and try to make pop('refreshSaves', FALSE)
+        if detail == 'SAME':
+            selected = set(self.GetSelected())
+        else:
+            selected = {detail}
+        #--Populate
+        if files is self.__sentinel:
+            self.PopulateItems(selected=selected)
+        else:  #--Iterable
+            if isinstance(self, ModList): ##: why is this needed ?
+                files = filter(lambda x: x in bosh.modInfos, files)
+            for file_ in files:
+                self.PopulateItem(file_, selected=selected)
+        if self.details: self.details.SetFile(detail)
+        if isinstance(self, ModList) and kwargs.pop(
+                'refreshSaves', True) and BashFrame.saveList:
+            BashFrame.saveList.RefreshUI()
+        self.panel.SetStatusCount()
 
     def GetSelected(self):
         """Return list of items selected (hilighted) in the interface."""
@@ -738,24 +768,10 @@ class INIList(List):
         tweaklist += u'[/xml][/spoiler]\n'
         return tweaklist
 
-    def RefreshUI(self,files='ALL',detail='SAME'):
-        """Refreshes UI for specified files."""
-        #--Details
-        if detail == 'SAME':
-            selected = set(self.GetSelected())
-        else:
-            selected = {detail}
-        #--Populate
-        if files == 'VALID':
-            files = [GPath(self.items[x]) for x in xrange(len(self.items)) if self.data[GPath(self.items[x])].status >= 0]
-        if files == 'ALL':
-            self.PopulateItems(selected=selected)
-        elif isinstance(files,bolt.Path):
-            self.PopulateItem(files,selected=selected)
-        else: #--Iterable
-            for file in files:
-                self.PopulateItem(file,selected=selected)
-        self.panel.SetStatusCount()
+    def RefreshUIValid(self):
+        files = [GPath(self.items[x]) for x in xrange(len(self.items)) if
+                 self.data[GPath(self.items[x])].status >= 0]
+        self.RefreshUI(files=files)
 
     def PopulateItem(self,itemDex,mode=0,selected=set()):
         #--String name of item? ##: YAK
@@ -832,9 +848,9 @@ class INIList(List):
         #--No point applying a tweak that's already applied
         file_ = tweak.dir.join(self.items[hitItem])
         self.data.ini.applyTweakFile(file_)
-        self.RefreshUI('VALID')
-        iniPanel.iniContents.RefreshUI()
-        iniPanel.tweakContents.RefreshUI(self.data[0])
+        self.RefreshUIValid()
+        iniPanel.iniContents.RefreshIniContents()
+        iniPanel.tweakContents.RefreshTweakLineCtrl(self.data[0])
 
     def OnItemSelected(self, event): self.panel.OnSelectTweak(event)
 
@@ -857,7 +873,7 @@ class INITweakLineCtrl(wx.ListCtrl):
             self.iniContents.ScrollLines(scroll)
         event.Skip()
 
-    def RefreshUI(self, tweakPath):
+    def RefreshTweakLineCtrl(self, tweakPath):
         if tweakPath is None:
             self.DeleteAllItems()
             return
@@ -917,7 +933,7 @@ class INILineCtrl(wx.ListCtrl):
                 break
         event.Skip()
 
-    def RefreshUI(self,resetScroll=False):
+    def RefreshIniContents(self, resetScroll=False):
         num = self.GetItemCount()
         if resetScroll:
             self.EnsureVisible(0)
@@ -993,28 +1009,6 @@ class ModList(_ModsSortMixin, List):
         bosh.modInfos.plugins.refresh(True)
         bosh.modInfos.refreshInfoLists()
         self.RefreshUI()
-
-    def RefreshUI(self,files='ALL',detail='SAME',refreshSaves=True):
-        """Refreshes UI for specified file. Also calls saveList.RefreshUI()!"""
-        #--Details
-        if detail == 'SAME':
-            selected = set(self.GetSelected())
-        else:
-            selected = {detail}
-        #--Populate
-        if files == 'ALL':
-            self.PopulateItems(selected=selected)
-        elif isinstance(files,bolt.Path):
-            self.PopulateItem(files,selected=selected)
-        else: #--Iterable
-            for file in files:
-                if file in bosh.modInfos:
-                    self.PopulateItem(file,selected=selected)
-        modDetails.SetFile(detail)
-        self.panel.SetStatusCount()
-        #--Saves
-        if refreshSaves and BashFrame.saveList:
-            BashFrame.saveList.RefreshUI()
 
     #--Populate Item
     def PopulateItem(self,itemDex,mode=0,selected=set()):
@@ -1182,7 +1176,7 @@ class ModList(_ModsSortMixin, List):
                     except bolt.BoltError as e:
                         balt.showError(self, _(u'%s') % e)
                     bosh.modInfos.refreshInfoLists()
-                    self.RefreshUI(refreshSaves=False)
+                    self.RefreshUI(refreshSaves=False) # FIXME(ut): Populates the WHOLE Modlist again and again !
                 self.RefreshUI([],refreshSaves=True)
         event.Skip()
 
@@ -1607,7 +1601,7 @@ class ModDetails(_SashDetailsPanel):
                     # Enable autoBashTags
                     bosh.modInfos.table.setItem(mod_info.name,'autoBashTags',True)
                     mod_info.reloadBashTags()
-                BashFrame.modList.RefreshUI(mod_info.name)
+                BashFrame.modList.RefreshUI([mod_info.name])
         # Copy tags to mod description
         bashTagsDesc = mod_info.getBashTagsDesc()
         class _CopyDesc(EnabledLink):
@@ -1616,7 +1610,7 @@ class ModDetails(_SashDetailsPanel):
             def Execute(self, event):
                 """Copy manually assigned bash tags into the mod description"""
                 mod_info.setBashTagsDesc(mod_info.getBashTags())
-                BashFrame.modList.RefreshUI(mod_info.name)
+                BashFrame.modList.RefreshUI([mod_info.name])
         # Tags links
         class _TagLink(CheckLink):
             def _initData(self, window, data):
@@ -1631,7 +1625,7 @@ class ModDetails(_SashDetailsPanel):
                     bosh.modInfos.table.setItem(mod_info.name,'autoBashTags',False)
                 modTags = mod_tags ^ {self.text}
                 mod_info.setBashTags(modTags)
-                BashFrame.modList.RefreshUI(mod_info.name)
+                BashFrame.modList.RefreshUI([mod_info.name])
         # Menu
         class _TagLinks(ChoiceLink):
             idList, cls = ID_TAGS, _TagLink
@@ -1706,12 +1700,12 @@ class INIPanel(SashPanel):
         left.SetSizer(lSizer)
 
     def RefreshUIColors(self):
-        self.RefreshUI()
+        self.RefreshPanel()
 
     def OnSelectTweak(self, event):
         tweakFile = self.uiList.items[event.GetIndex()]
         self.tweakName.SetValue(tweakFile.sbody)
-        self.tweakContents.RefreshUI(tweakFile)
+        self.tweakContents.RefreshTweakLineCtrl(tweakFile)
         event.Skip()
 
     def GetChoice(self,index=None):
@@ -1734,10 +1728,10 @@ class INIPanel(SashPanel):
         changed = self.trackedInfo.refresh()
         changed = set([x for x in changed if x != bosh.oblivionIni.path])
         if self.GetChoice() in changed:
-            self.RefreshUI()
+            self.RefreshPanel()
         super(INIPanel, self).ShowPanel()
 
-    def RefreshUI(self,what='ALL'):
+    def RefreshPanel(self, what='ALL'):
         if what == 'ALL' or what == 'TARGETS':
             # Refresh the drop down list
             path = self.GetChoice()
@@ -1788,8 +1782,8 @@ class INIPanel(SashPanel):
         if refresh:
             self.trackedInfo.clear()
             self.trackedInfo.track(self.GetChoice())
-        self.iniContents.RefreshUI(refresh)
-        self.tweakContents.RefreshUI(selected)
+        self.iniContents.RefreshIniContents(refresh)
+        self.tweakContents.RefreshTweakLineCtrl(selected)
         if BashFrame.iniList is not None: BashFrame.iniList.RefreshUI()
 
     def OnRemove(self,event):
@@ -1958,6 +1952,7 @@ class SaveList(List):
             newName += u'.ess'
         newFileName = newName
         selected = self.GetSelected()
+        # renamed = []
         for index, path in enumerate(selected):
             if index:
                 newFileName = newName.replace(u'.ess',u'%d.ess' % index)
@@ -1970,26 +1965,10 @@ class SaveList(List):
                         GPath(oldPath.s[:-3]+bush.game.se.shortName.lower()).moveTo(GPath(newPath.s[:-3]+bush.game.se.shortName.lower()))
                     if GPath(oldPath.s[:-3]+u'pluggy').exists():
                         GPath(oldPath.s[:-3]+u'pluggy').moveTo(GPath(newPath.s[:-3]+u'pluggy'))
+                    # renamed.append(GPath(newPath))
         bosh.saveInfos.refresh()
         self.RefreshUI()
-
-    def RefreshUI(self,files='ALL',detail='SAME'):
-        """Refreshes UI for specified files."""
-        #--Details
-        if detail == 'SAME':
-            selected = set(self.GetSelected())
-        else:
-            selected = {detail}
-        #--Populate
-        if files == 'ALL':
-            self.PopulateItems(selected=selected)
-        elif isinstance(files,bolt.Path):
-            self.PopulateItem(files,selected=selected)
-        else: #--Iterable
-            for file in files:
-                self.PopulateItem(file,selected=selected)
-        saveDetails.SetFile(detail)
-        self.panel.SetStatusCount()
+        # self.RefreshUI(renamed) ##: not yet due to how PopulateItem works
 
     #--Populate Item
     def PopulateItem(self,itemDex,mode=0,selected=set()):
@@ -2248,7 +2227,7 @@ class SaveDetails(_SashDetailsPanel):
             balt.showError(self,_(u'File corrupted on save!'))
             self.SetFile(None)
             BashFrame.saveList.RefreshUI()
-        else: BashFrame.saveList.RefreshUI(saveInfo.name)
+        else: BashFrame.saveList.RefreshUI([saveInfo.name])
 
     def DoCancel(self,event):
         """Event: Clicked cancel button."""
@@ -2948,12 +2927,12 @@ class InstallersPanel(SashTankPanel):
         self.uiList.RefreshUI()
         if bosh.modInfos.refresh():
             del bosh.modInfos.mtimesReset[:]
-            BashFrame.modList.RefreshUI('ALL')
+            BashFrame.modList.RefreshUI()
         if BashFrame.iniList is not None:
             if bosh.iniInfos.refresh():
-                BashFrame.iniList.panel.RefreshUI('ALL')
+                BashFrame.iniList.panel.RefreshPanel('ALL')
             else:
-                BashFrame.iniList.panel.RefreshUI('TARGETS')
+                BashFrame.iniList.panel.RefreshPanel('TARGETS')
 
     def RefreshDetails(self,item=None):
         """Refreshes detail view associated with data from item."""
@@ -3122,7 +3101,7 @@ class InstallersPanel(SashTankPanel):
         espmScrollPos = self.gEspmList.GetScrollPos(wx.VERTICAL)
         subIndices = self.gSubList.GetSelections()
 
-        self.uiList.RefreshUI(self.detailsItem)
+        self.uiList.RefreshUI([self.detailsItem])
         for subIndex in subIndices:
             self.gSubList.SetSelection(subIndex)
 
@@ -3241,23 +3220,6 @@ class ScreensList(List):
                     self.SelectItemAtIndex(index)
             event.Veto()
 
-    def RefreshUI(self,files='ALL',detail='SAME'):
-        """Refreshes UI for specified files."""
-        #--Details
-        if detail == 'SAME':
-            selected = set(self.GetSelected())
-        else:
-            selected = {detail}
-        #--Populate
-        if files == 'ALL':
-            self.PopulateItems(selected=selected)
-        elif isinstance(files,StringTypes):
-            self.PopulateItem(files,selected=selected)
-        else: #--Iterable
-            for file in files:
-                self.PopulateItem(file,selected=selected)
-        self.panel.SetStatusCount()
-
     #--Populate Item
     def PopulateItem(self,itemDex,mode=0,selected=set()):
         #--String name of item?
@@ -3342,24 +3304,6 @@ class BSAList(List):
                  'Modified': lambda self_, a: self_.data[a].mtime,
                  'Size': lambda self_, a: self_.data[a].size,
                 }
-
-    def RefreshUI(self,files='ALL',detail='SAME'):
-        """Refreshes UI for specified files."""
-        #--Details
-        if detail == 'SAME':
-            selected = set(self.GetSelected())
-        else:
-            selected = {detail}
-        #--Populate
-        if files == 'ALL':
-            self.PopulateItems(selected=selected)
-        elif isinstance(files,bolt.Path):
-            self.PopulateItem(files,selected=selected)
-        else: #--Iterable
-            for file in files:
-                self.PopulateItem(file,selected=selected)
-        BSADetails.SetFile(detail)
-        self.panel.SetStatusCount()
 
     #--Populate Item
     def PopulateItem(self,itemDex,mode=0,selected=set()):
@@ -3536,7 +3480,7 @@ class BSADetails(wx.Window):
             balt.showError(self,_(u'File corrupted on save!'))
             self.SetFile(None)
         self.SetFile(self.BSAInfo.name)
-        BSAList.RefreshUI(BSAInfo.name)
+        BSAList.RefreshUI([BSAInfo.name])
 
     def DoCancel(self,event):
         """Event: Clicked cancel button."""
@@ -3594,23 +3538,6 @@ class MessageList(List):
         else:
             self.items = self.data.keys()
         return self.items
-
-    def RefreshUI(self,files='ALL',detail='SAME'):
-        """Refreshes UI for specified files."""
-        #--Details
-        if detail == 'SAME':
-            selected = set(self.GetSelected())
-        else:
-            selected = {detail}
-        #--Populate
-        if files == 'ALL':
-            self.PopulateItems(selected=selected)
-        elif isinstance(files,StringTypes):
-            self.PopulateItem(files,selected=selected)
-        else: #--Iterable
-            for file in files:
-                self.PopulateItem(file,selected=selected)
-        self.panel.SetStatusCount()
 
     #--Populate Item
     def PopulateItem(self,itemDex,mode=0,selected=set()):
@@ -4360,11 +4287,11 @@ class BashFrame(wx.Frame):
                     bosh.bsaInfos.resetMTimes()
         #--Repopulate
         if popMods:
-            BashFrame.modList.RefreshUI(popMods) #--Will repop saves too.
+            BashFrame.modList.RefreshUI() #--Will repop saves too.
         elif popSaves:
-            BashFrame.saveList.RefreshUI(popSaves)
+            BashFrame.saveList.RefreshUI()
         if popInis:
-            BashFrame.iniList.RefreshUI(popInis)
+            BashFrame.iniList.RefreshUI()
         #--Current notebook panel
         if self.iPanel: self.iPanel.frameActivated = True
         self.notebook.currentPage.ShowPanel()

@@ -698,7 +698,7 @@ class Mod_AllowGhosting(TransLink):
                     toGhost = allowGhosting and fileName not in bosh.modInfos.ordered
                     oldGhost = fileInfo.isGhost
                     if fileInfo.setGhost(toGhost) != oldGhost:
-                        self.window.RefreshUI(fileName)
+                        self.window.RefreshUI([fileName])
             return _CheckLink()
         else:
             subMenu = balt.MenuLink(_(u"Ghosting"))
@@ -1143,7 +1143,7 @@ class Mod_SkipDirtyCheck(TransLink):
                     fileName = self.selected[0]
                     self.ignoreDirty ^= True
                     bosh.modInfos.table.setItem(fileName,'ignoreDirty',self.ignoreDirty)
-                    self.window.RefreshUI(fileName)
+                    self.window.RefreshUI([fileName])
             return _CheckLink()
         else:
             subMenu = balt.MenuLink(_(u"Dirty edit scanning"))

@@ -330,14 +330,12 @@ class SashTankPanel(SashPanel):
 class List(balt.UIList):
     icons = colorChecks
 
-    def __init__(self, parent, listData=None, keyPrefix='', dndFiles=False,
-                 dndList=False, dndColumns=(), **kwargs):
+    def __init__(self, parent, listData=None, keyPrefix='', details=None):
         #--ListCtrl
         #--MasterList: masterInfo = self.data[item], where item is id number
         # rest of List subclasses provide a non None listData
         self.data = {} if listData is None else listData # TODO(ut): to UIList
-        balt.UIList.__init__(self, parent, keyPrefix, dndFiles=dndFiles,
-                             dndList=dndList, dndColumns=dndColumns, **kwargs)
+        balt.UIList.__init__(self, parent, keyPrefix, details=details)
         #--Items
         self.sortDirty = 0
         self.PopulateItems()
@@ -496,6 +494,7 @@ class MasterList(_ModsSortMixin, List):
                      self.data[a].name), # sort_keys['Load Order'] =
                  }
     extra_sortings = [_ModsSortMixin._sortEsmsFirst]
+    sunkenBorder, singleCell = False, True
 
     @property
     def cols(self):
@@ -512,8 +511,7 @@ class MasterList(_ModsSortMixin, List):
         self.fileOrderItems = []
         self.loadOrderNames = []
         #--Parent init
-        List.__init__(self, parent, listData, keyPrefix, singleCell=True,
-                      sunkenBorder=False)
+        List.__init__(self, parent, listData, keyPrefix)
         self._setEditedFn = setEditedFn
 
     def OnItemSelected(self, event): event.Skip()
@@ -969,13 +967,8 @@ class ModList(_ModsSortMixin, List):
     }
     extra_sortings = [_ModsSortMixin._sortEsmsFirst,
                       _ModsSortMixin._activeModsFirst]
-
-    def __init__(self, parent, listData, keyPrefix):
-        #--Data/Items
-        self.details = None #--Set by panel
-        #--Parent init
-        List.__init__(self, parent, listData, keyPrefix, dndList=True,
-                      dndColumns=['Load Order'], sunkenBorder=False)
+    dndList, dndColumns = True, ['Load Order']
+    sunkenBorder = False
 
     #-- Drag and Drop-----------------------------------------------------
     def OnDropIndexes(self, indexes, newIndex):
@@ -1910,10 +1903,10 @@ class ModPanel(SashPanel):
         SashPanel.__init__(self, parent, sashGravity=1.0)
         left,right = self.left, self.right
         self.listData = bosh.modInfos
-        BashFrame.modList = ModList(left, self.listData, self.keyPrefix)
-        self.uiList = BashFrame.modList
         self.modDetails = ModDetails(right)
-        self.uiList.details = self.modDetails
+        self.uiList = BashFrame.modList = ModList(left, listData=self.listData,
+                                                  keyPrefix=self.keyPrefix,
+                                                  details=self.modDetails)
         #--Layout
         right.SetSizer(hSizer((self.modDetails,1,wx.EXPAND)))
         left.SetSizer(hSizer((self.uiList,2,wx.EXPAND)))
@@ -1947,12 +1940,6 @@ class SaveList(List):
                  'PlayTime': lambda self_, a: self_.data[a].header.gameTicks,
                  'Cell'    : lambda self_, a: self_.data[a].header.pcLocation,
                  }
-
-    def __init__(self, parent, listData, keyPrefix):
-        #--Data/Items
-        self.details = None #--Set by panel
-        #--Parent init
-        List.__init__(self, parent, listData, keyPrefix)
 
     def OnBeginEditLabel(self,event):
         """Start renaming saves"""
@@ -2279,10 +2266,10 @@ class SavePanel(SashPanel):
         SashPanel.__init__(self, parent, sashGravity=1.0)
         left,right = self.left, self.right
         self.listData = bosh.saveInfos
-        BashFrame.saveList = SaveList(left, self.listData, self.keyPrefix)
-        self.uiList = BashFrame.saveList
         self.saveDetails = SaveDetails(right)
-        BashFrame.saveList.details = self.saveDetails
+        self.uiList = BashFrame.saveList = SaveList(left, self.listData,
+                                                    keyPrefix=self.keyPrefix,
+                                                    details=self.saveDetails)
         #--Layout
         right.SetSizer(hSizer((self.saveDetails,1,wx.EXPAND)))
         left.SetSizer(hSizer((BashFrame.saveList, 2, wx.EXPAND)))
@@ -2330,10 +2317,8 @@ class InstallersList(balt.Tank):
             items.sort(key=lambda x: not isinstance(self.data[x],
                                                     bosh.InstallerProject))
     extra_sortings = [_sortStructure, _sortActive, _sortProjects]
-
-    def __init__(self, parent, data, keyPrefix, details=None):
-        balt.Tank.__init__(self, parent, data, keyPrefix, details=details,
-                           dndList=True, dndFiles=True, dndColumns=['Order'])
+    #--DnD
+    dndList, dndFiles, dndColumns = True, True, ['Order']
 
     #--Item Info
     def getColumns(self, item):
@@ -3358,14 +3343,6 @@ class BSAList(List):
                  'Size': lambda self_, a: self_.data[a].size,
                 }
 
-    def __init__(self, parent, listData, keyPrefix):
-        #--Columns
-        self.cols = settings['bash.BSAs.cols']
-        #--Data/Items
-        self.details = None #--Set by panel
-        #--Parent init
-        List.__init__(self, parent, listData, keyPrefix)
-
     def RefreshUI(self,files='ALL',detail='SAME'):
         """Refreshes UI for specified files."""
         #--Details
@@ -3574,9 +3551,9 @@ class BSAPanel(NotebookPanel):
         NotebookPanel.__init__(self, parent)
         # global BSAList # was not defined at module level
         self.listData = bosh.BSAInfos
-        bsaList = BSAList(self, self.listData, self.keyPrefix)
         self.BSADetails = BSADetails(self)
-        BSAList.details = self.BSADetails
+        self.uilist = BSAList(self, self.listData, self.keyPrefix,
+                              details=self.BSADetails)
         #--Layout
         sizer = hSizer(
             (BSAList,1,wx.GROW),
@@ -3605,7 +3582,6 @@ class MessageList(List):
                 }
 
     def __init__(self, parent, listData, keyPrefix):
-        #--Other
         self.gText = None
         self.searchResults = None
         #--Parent init

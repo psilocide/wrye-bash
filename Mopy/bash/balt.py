@@ -1776,15 +1776,20 @@ class UIList(wx.Panel):
     max_items_open = 7 # max number of items one can open without prompt
     #--Style params
     editLabels = False # allow editing the labels - also enables F2 shortcut
+    sunkenBorder = True
+    singleCell = False
     #--Sorting
     nonReversibleCols = {'Load Order', 'Current Order'}
     default_sort_col = 'File' # override as needed
     sort_keys = {} # sort_keys[col] provides the sort key for this col
     extra_sortings = [] # extra self.methods for fancy sortings - order matters
+    #--DnD
+    dndFiles = dndList = False
+    dndColumns = ()
 
-    def __init__(self, parent, keyPrefix, dndFiles, dndList, dndColumns=(),
-                 **kwargs):
+    def __init__(self, parent, keyPrefix, details=None):
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
+        self.details = details
         # parent = left -> ThinSplitter -> Panel, consider an init argument
         self.panel = parent.GetParent().GetParent()
         #--Layout
@@ -1795,17 +1800,17 @@ class UIList(wx.Panel):
         # columns keys - access to the settings is done via properties (mostly)
         self.colNames = bosh.settings['bash.colNames']
         self.colWidthsKey = self.keyPrefix + '.colWidths' # used in OnColumnResize
-        #--attributes
-        self.dndColumns = dndColumns
         #--gList
         ctrlStyle = wx.LC_REPORT
-        if kwargs.pop('singleCell', False): ctrlStyle |= wx.LC_SINGLE_SEL
         if self.__class__.editLabels: ctrlStyle |= wx.LC_EDIT_LABELS
-        if kwargs.pop('sunkenBorder', True): ctrlStyle |= wx.SUNKEN_BORDER
-        self._gList = ListCtrl(self, style=ctrlStyle, dndFiles=dndFiles,
-                              dndList=dndList, fnDndAllow=self.dndAllow,
-                              fnDropFiles=self.OnDropFiles,
-                              fnDropIndexes=self.OnDropIndexes)
+        if self.__class__.sunkenBorder: ctrlStyle |= wx.SUNKEN_BORDER
+        if self.__class__.singleCell: ctrlStyle |= wx.LC_SINGLE_SEL
+        self._gList = ListCtrl(self, style=ctrlStyle,
+                               dndFiles=self.__class__.dndFiles,
+                               dndList=self.__class__.dndList,
+                               fnDndAllow=self.dndAllow,
+                               fnDropFiles=self.OnDropFiles,
+                               fnDropIndexes=self.OnDropIndexes)
         if self.icons:
             # Image List: Column sorting order indicators
             # explorer style ^ == ascending
@@ -2122,17 +2127,13 @@ class UIList(wx.Panel):
 class Tank(UIList):
     """'Tank' format table. Takes the form of a wxListCtrl in Report mode, with
     multiple columns and (optionally) column and item menus."""
+    sunkenBorder = False
 
-    def __init__(self, parent, data, keyPrefix, details=None, dndList=False,
-                 dndFiles=False, dndColumns=(), **kwargs):
+    def __init__(self, parent, data, keyPrefix, details=None):
         #--Data
         self.data = data
-        self.details = details
         #--ListCtrl
-        # no sunken borders by default
-        kwargs['sunkenBorder'] = kwargs.pop('sunkenBorder', False)
-        UIList.__init__(self, parent, keyPrefix, dndFiles=dndFiles,
-                        dndList=dndList, dndColumns=dndColumns, **kwargs)
+        UIList.__init__(self, parent, keyPrefix, details)
         #--Items
         self.sortDirty = False
         self.UpdateItems()

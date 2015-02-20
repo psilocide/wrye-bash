@@ -1902,14 +1902,14 @@ class UIList(wx.Panel):
     def MouseOverItem(self, item):
         """Handle mouse entered item by showing tip or similar."""
         if item is None:
-            Link.Frame.GetStatusBar().SetStatusText(u'', 1)
+            Link.Frame.SetStatusInfo(u'')
             return
         if item < 0: return
         # TODO(ut): Tank vs List - search for GetItem - IIUC Tank has a cache
         if isinstance(self, Tank): item = self.GetItem(item)
         text = self.mouseTexts.get(item, u'')
         if text != self.mouseTextPrev:
-            Link.Frame.GetStatusBar().SetStatusText(text, 1)
+            Link.Frame.SetStatusInfo(text)
             self.mouseTextPrev = text
 
     def OnKeyUp(self, event):
@@ -2450,7 +2450,7 @@ class ItemLink(Link):
         """Hover over an item, set the statusbar text"""
         if Link.Popup:
             item = Link.Popup.FindItemById(event.GetId()) # <wx._core.MenuItem>
-            Link.Frame.GetStatusBar().SetText(item.GetHelp() if item else u'')
+            Link.Frame.SetStatusInfo(item.GetHelp() if item else u'')
 
 class MenuLink(Link):
     """Defines a submenu. Generally used for submenus of large menus."""
@@ -2480,7 +2480,7 @@ class MenuLink(Link):
     @staticmethod
     def OnMenuOpen(event):
         """Hover over a submenu, clear the status bar text"""
-        Link.Frame.GetStatusBar().SetText('')
+        Link.Frame.SetStatusInfo(u'')
 
 class ChoiceLink(Link):
     """HACK: Choice menu using the IdList class to define its items.

@@ -329,7 +329,6 @@ class List(balt.UIList):
         self.data = {} if listData is None else listData # TODO(ut): to UIList
         balt.UIList.__init__(self, parent, keyPrefix, details=details)
         #--Items
-        self.sortDirty = 0
         self.PopulateItems()
 
     #--Items ----------------------------------------------
@@ -791,7 +790,7 @@ class INIList(List):
             if not settings['bash.ini.allowNewLines']: icon = 20
             else: icon = 0
             mousetext = _(u'Tweak is invalid')
-        self.mouseTexts[itemDex] = mousetext
+        self.mouseTexts[fileName] = mousetext
         listCtrl.SetItemImage(itemDex,self.icons.Get(icon,checkMark))
         #--Font/BG Color
         item = listCtrl.GetItem(itemDex)
@@ -1116,7 +1115,7 @@ class ModList(_ModsSortMixin, List):
                 font.SetUnderlined(True)
                 item.SetFont(font)
         listCtrl.SetItem(item)
-        self.mouseTexts[itemDex] = mouseText
+        self.mouseTexts[fileName] = mouseText
         #--Selection State
         self.SelectItemAtIndex(itemDex, fileName in selected)
 
@@ -1238,10 +1237,6 @@ class ModList(_ModsSortMixin, List):
         #--Refresh
         bosh.modInfos.refresh()
         self.RefreshUI()
-        #--Mark sort as dirty
-        if self.selectedFirst:
-            self.sortDirty = 1
-            self.colReverse[self.sort] = not self.colReverse.get(self.sort,0)
 
 #------------------------------------------------------------------------------
 class _SashDetailsPanel(SashPanel):
@@ -3625,10 +3620,6 @@ class PeopleList(balt.Tank):
         labels['Karma'] = (u'-', u'+')[karma >= 0] * abs(karma)
         labels['Header'] = itemData[2].split(u'\n', 1)[0][:75]
         return labels
-
-    def MouseOverItem(self, item):
-        """People's Tab: mouse over item is a noop."""
-        pass
 
 #------------------------------------------------------------------------------
 class PeoplePanel(SashTankPanel):

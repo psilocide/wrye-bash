@@ -331,9 +331,6 @@ class List(balt.UIList):
         #--Items
         self.sortDirty = 0
         self.PopulateItems()
-        #--Events: Columns
-        self.checkcol = []
-        self._gList.Bind(wx.EVT_UPDATE_UI, self.onUpdateUI)
 
     #--Items ----------------------------------------------
     def PopulateItem(self,itemDex,mode=0,selected=set()):
@@ -451,30 +448,6 @@ class List(balt.UIList):
                                 balt.showError(self, _(u'%s') % e)
         bosh.modInfos.plugins.refresh(True)
         self.RefreshUI()
-
-    #--Event Handlers -------------------------------------
-    def onUpdateUI(self,event):
-        if self.checkcol:
-            colDex = self.checkcol[0]
-            colName = self.cols[colDex]
-            width = self._gList.GetColumnWidth(colDex)
-            if width < 25:
-                width = 25
-                self._gList.SetColumnWidth(colDex, 25)
-                self._gList.resizeLastColumn(0)
-            self.colWidths[colName] = width
-            self.checkcol = []
-        event.Skip()
-
-    #--Column Resize
-    def OnColumnResize(self,event):
-        """Due to a nastyness that ListCtrl.GetColumnWidth(col) returns
-        the old size before this event completes just save what
-        column is being edited and process after in OnUpdateUI()"""
-        self.checkcol = [event.GetColumn()]
-        settings.setdefault(self.colWidthsKey, {}) ##: hack - move to UIList
-        settings.setChanged(self.colWidthsKey)
-        event.Skip()
 
 class _ModsSortMixin(object):
 

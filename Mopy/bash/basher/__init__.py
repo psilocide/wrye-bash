@@ -366,6 +366,7 @@ class List(balt.UIList):
             self.PopulateItem(item, mode=True, selected=selected) ##: yak
         #--Sort
         self.SortItems(col, reverse)
+        self.autosizeColumns()
 
     __sentinel = ()
     def RefreshUI(self, files=__sentinel, detail='SAME', **kwargs):
@@ -1257,6 +1258,7 @@ class _SashDetailsPanel(SashPanel):
                                    self.__class__.defaultSubSashPos)
             self.subSplitter.SetSashPosition(sashPos)
             del self._firstShow
+        self.uilist.autosizeColumns()
 
     def ClosePanel(self): ##: does not call super
         if not hasattr(self, '_firstShow'):
@@ -1297,8 +1299,8 @@ class ModDetails(_SashDetailsPanel):
             masterPanel = wx.Panel(subSplitter)
             tagPanel = wx.Panel(subSplitter)
             #--Masters
-            self.masters = MasterList(masterPanel, None, self.SetEdited,
-                                      keyPrefix=self.keyPrefix)
+            self.uilist = self.masters = MasterList(
+                masterPanel, None, self.SetEdited, keyPrefix=self.keyPrefix)
             #--Save/Cancel
             self.save = button(masterPanel,label=_(u'Save'),id=wx.ID_SAVE,onClick=self.DoSave,)
             self.cancel = button(masterPanel,label=_(u'Cancel'),id=wx.ID_CANCEL,onClick=self.DoCancel,)
@@ -2025,8 +2027,8 @@ class SaveDetails(_SashDetailsPanel):
         masterPanel = wx.Panel(subSplitter)
         notePanel = wx.Panel(subSplitter)
         #--Masters
-        self.masters = MasterList(masterPanel, None, self.SetEdited,
-                                  keyPrefix=self.keyPrefix)
+        self.uilist = self.masters = MasterList(
+            masterPanel, None, self.SetEdited, keyPrefix=self.keyPrefix)
         #--Save Info
         self.gInfo = textCtrl(notePanel, size=(textWidth, 100), multiline=True,
                               onText=self.OnInfoEdit, maxChars=2048)

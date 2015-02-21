@@ -502,6 +502,9 @@ class MasterList(_ModsSortMixin, List):
     def cols(self):
         # using self.__class__.keyPrefix for common saves/mods masters settings
         return settings[self.__class__.keyPrefix + '.cols']
+    @property
+    def allCols(self):
+        return bosh.settings[self.__class__.keyPrefix + '.allCols']
 
     def __init__(self, parent, fileInfo, setEditedFn, listData=None,
                  keyPrefix=keyPrefix):

@@ -244,6 +244,7 @@ class People_Import(ItemLink, People_Link):
 #------------------------------------------------------------------------------
 class People_Karma(ChoiceLink, balt.MenuLink, People_Link):
     """Add Karma setting links."""
+    text = _(u'Karma')
     labels = [u'%+d' % x for x in xrange(5, -6, -1)]
 
     class _Karma(ItemLink, People_Link):
@@ -317,17 +318,16 @@ class Master_Disable(AppendableLink, EnabledLink):
 
 # Column menu -----------------------------------------------------------------
 #------------------------------------------------------------------------------
-class List_Columns(MenuLink):
+class List_Columns(ChoiceLink, MenuLink):
     """Customize visible columns."""
     text = _(u"Columns")
-
+    # extraItems
     class _AutoWidth(RadioLink):
         wxFlag = 0
         def _check(self): return self.wxFlag == self.window.autoColWidths
         def Execute(self, event):
             self.window.autoColWidths = self.wxFlag
             self.window.autosizeColumns()
-
     class _Manual(_AutoWidth):
         text = _(u'Manual')
         help = _(
@@ -341,25 +341,15 @@ class List_Columns(MenuLink):
         help = _(u'Fit columns to their content, keep header always visible. '
                  u' Applies to all Bash lists')
 
-    def __init__(self, columnsKey, allColumnsKey, persistentColumns):
-        super(List_Columns, self).__init__(self.__class__.text)
-        self.columnsKey = columnsKey
-        self.allColumnsKey = allColumnsKey
-        self.links = [self._Manual(), self._Contents(), self._Header(),
-                      balt.SeparatorLink()]
-        for col in settingDefaults[self.allColumnsKey]:
-            enable = col not in persistentColumns
-            self.links.append(
-                List_Column(self.columnsKey, self.allColumnsKey, col, enable))
+    extraItems = [_Manual(), _Contents(), _Header(), balt.SeparatorLink()]
+
+    def _choices(self): return self.window.allCols
 
 class List_Column(CheckLink, EnabledLink):
 
-    def __init__(self,columnsKey,allColumnsKey,colName,enable=True):
+    def __init__(self, colName):
         super(List_Column, self).__init__()
         self.colName = colName
-        self.columnsKey = columnsKey
-        self.allColumnsKey = allColumnsKey
-        self.enable = enable
         self.text = bosh.settings['bash.colNames'][self.colName]
         self.help = _(u"Show/Hide '%(colname)s' column.") % {
             'colname': self.text}
@@ -367,16 +357,16 @@ class List_Column(CheckLink, EnabledLink):
     def _enable(self):
         return self.colName not in self.window.persistent_columns
 
-    def _check(self): return self.colName in bosh.settings[self.columnsKey]
+    def _check(self): return self.colName in self.window.cols
 
     def Execute(self,event):
-        if self.colName in bosh.settings[self.columnsKey]:
-            bosh.settings[self.columnsKey].remove(self.colName)
-            bosh.settings.setChanged(self.columnsKey)
+        if self.colName in self.window.cols:
+            self.window.cols.remove(self.colName)
         else:
             #--Ensure the same order each time
-            bosh.settings[self.columnsKey] = [
-                x for x in settingDefaults[self.allColumnsKey]
-                if x in bosh.settings[self.columnsKey] or x == self.colName]
+            cols = self.window.cols[:]
+            del self.window.cols[:]
+            self.window.cols.append([x for x in self.window.allCols if
+                                     x in cols or x == self.colName])
         self.window.PopulateColumns()
         self.window.RefreshUI()

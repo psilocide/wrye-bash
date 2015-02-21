@@ -315,8 +315,7 @@ def InitInstallerLinks():
     #--Columns
     InstallersList.mainMenu.append(SeparatorLink())
     InstallersList.mainMenu.append(
-        List_Columns('bash.installers.cols', 'bash.installers.allCols',
-                     ['Package']))
+        List_Columns('bash.installers.cols', 'bash.installers.allCols'))
     #--Actions
     InstallersList.mainMenu.append(SeparatorLink())
     InstallersList.mainMenu.append(balt.Tanks_Open())
@@ -442,9 +441,9 @@ def InitINILinks():
         sortMenu.links.append(Files_SortBy('File'))
         sortMenu.links.append(Files_SortBy('Installer'))
         INIList.mainMenu.append(sortMenu)
+        INIList.mainMenu.append(
+            List_Columns('bash.ini.cols', 'bash.ini.allCols'))
     INIList.mainMenu.append(SeparatorLink())
-    INIList.mainMenu.append(
-        List_Columns('bash.ini.cols', 'bash.ini.allCols', ['File']))
     INIList.mainMenu.append(SeparatorLink())
     INIList.mainMenu.append(INI_AllowNewLines())
     INIList.mainMenu.append(Files_Open())
@@ -493,7 +492,7 @@ def InitModLinks():
     #--Columns ----------------------------------
     ModList.mainMenu.append(SeparatorLink())
     ModList.mainMenu.append(
-        List_Columns('bash.mods.cols', 'bash.mods.allCols', ['File']))
+        List_Columns('bash.mods.cols', 'bash.mods.allCols'))
     #--------------------------------------------
     ModList.mainMenu.append(SeparatorLink())
     #--File Menu---------------------------------
@@ -664,7 +663,7 @@ def InitSaveLinks():
     #--Columns --------------------------------
     SaveList.mainMenu.append(SeparatorLink())
     SaveList.mainMenu.append(
-        List_Columns('bash.saves.cols', 'bash.saves.allCols', ['File']))
+        List_Columns('bash.saves.cols', 'bash.saves.allCols'))
     #------------------------------------------
     SaveList.mainMenu.append(SeparatorLink())
     SaveList.mainMenu.append(Files_Open())
@@ -779,7 +778,7 @@ def InitScreenLinks():
     ScreensList.mainMenu.append(Files_Open())
     ScreensList.mainMenu.append(SeparatorLink())
     ScreensList.mainMenu.append(
-        List_Columns('bash.screens.cols', 'bash.screens.allCols', ['File']))
+        List_Columns('bash.screens.cols', 'bash.screens.allCols'))
     ScreensList.mainMenu.append(SeparatorLink())
     ScreensList.mainMenu.append(Screens_NextScreenShot())
     #--JPEG Quality
@@ -811,8 +810,7 @@ def InitMessageLinks():
     MessageList.mainMenu.append(Messages_Archive_Import())
     MessageList.mainMenu.append(SeparatorLink())
     MessageList.mainMenu.append(
-        List_Columns('bash.messages.cols', 'bash.messages.allCols',
-                     ['Subject']))
+        List_Columns('bash.messages.cols', 'bash.messages.allCols'))
 
     #--ScreensList: Item Links
     MessageList.itemMenu.append(Message_Delete())
@@ -825,7 +823,7 @@ def InitPeopleLinks():
     PeopleList.mainMenu.append(People_Import())
     PeopleList.mainMenu.append(SeparatorLink())
     PeopleList.mainMenu.append(
-        List_Columns('bash.people.cols', 'bash.people.allCols', ['Name']))
+        List_Columns('bash.people.cols', 'bash.people.allCols'))
     #--Item links
     PeopleList.itemMenu.append(People_Karma(_(u'Karma')))
     PeopleList.itemMenu.append(SeparatorLink())

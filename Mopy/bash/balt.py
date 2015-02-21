@@ -1778,6 +1778,8 @@ class UIList(wx.Panel):
         self.SetSizer(sizer)
         #--Settings key
         self.keyPrefix = keyPrefix
+        #--Columns
+        self.__class__.persistent_columns = {self.default_sort_col}
         #--gList
         ctrlStyle = wx.LC_REPORT
         if self.__class__.editLabels: ctrlStyle |= wx.LC_EDIT_LABELS

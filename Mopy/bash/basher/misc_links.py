@@ -364,7 +364,8 @@ class List_Column(CheckLink, EnabledLink):
         self.help = _(u"Show/Hide '%(colname)s' column.") % {
             'colname': self.text}
 
-    def _enable(self): return self.enable
+    def _enable(self):
+        return self.colName not in self.window.persistent_columns
 
     def _check(self): return self.colName in bosh.settings[self.columnsKey]
 

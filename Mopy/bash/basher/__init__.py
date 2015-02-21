@@ -3495,6 +3495,7 @@ class MessageList(List):
     def __init__(self, parent, listData, keyPrefix):
         self.gText = None
         self.searchResults = None
+        self.persistent_columns = {'Subject'}
         #--Parent init
         List.__init__(self, parent, listData, keyPrefix)
 

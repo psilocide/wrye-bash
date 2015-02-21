@@ -318,6 +318,32 @@ class Master_Disable(AppendableLink, EnabledLink):
 
 # Column menu -----------------------------------------------------------------
 #------------------------------------------------------------------------------
+class List_Column(CheckLink, EnabledLink):
+
+    def __init__(self, colName):
+        super(List_Column, self).__init__()
+        self.colName = colName
+        self.text = bosh.settings['bash.colNames'][self.colName]
+        self.help = _(u"Show/Hide '%(colname)s' column.") % {
+            'colname': self.text}
+
+    def _enable(self):
+        return self.colName not in self.window.persistent_columns
+
+    def _check(self): return self.colName in self.window.cols
+
+    def Execute(self,event):
+        if self.colName in self.window.cols:
+            self.window.cols.remove(self.colName)
+        else:
+            #--Ensure the same order each time
+            cols = self.window.cols[:]
+            del self.window.cols[:]
+            self.window.cols.extend([x for x in self.window.allCols if
+                                     x in cols or x == self.colName])
+        self.window.PopulateColumns()
+        self.window.RefreshUI()
+
 class List_Columns(ChoiceLink, MenuLink):
     """Customize visible columns."""
     text = _(u"Columns")
@@ -340,33 +366,8 @@ class List_Columns(ChoiceLink, MenuLink):
         text, wxFlag = _(u'Fit Header'), 2 # wx.LIST_AUTOSIZE_USEHEADER
         help = _(u'Fit columns to their content, keep header always visible. '
                  u' Applies to all Bash lists')
-
     extraItems = [_Manual(), _Contents(), _Header(), balt.SeparatorLink()]
-
+    # choices
+    cls = List_Column
+    @property
     def _choices(self): return self.window.allCols
-
-class List_Column(CheckLink, EnabledLink):
-
-    def __init__(self, colName):
-        super(List_Column, self).__init__()
-        self.colName = colName
-        self.text = bosh.settings['bash.colNames'][self.colName]
-        self.help = _(u"Show/Hide '%(colname)s' column.") % {
-            'colname': self.text}
-
-    def _enable(self):
-        return self.colName not in self.window.persistent_columns
-
-    def _check(self): return self.colName in self.window.cols
-
-    def Execute(self,event):
-        if self.colName in self.window.cols:
-            self.window.cols.remove(self.colName)
-        else:
-            #--Ensure the same order each time
-            cols = self.window.cols[:]
-            del self.window.cols[:]
-            self.window.cols.append([x for x in self.window.allCols if
-                                     x in cols or x == self.colName])
-        self.window.PopulateColumns()
-        self.window.RefreshUI()

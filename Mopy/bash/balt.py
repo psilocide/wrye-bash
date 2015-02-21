@@ -2474,7 +2474,7 @@ class ChoiceLink(Link):
     cls = ItemLink
 
     def _range(self):
-        for choice in self._choices: yield self.__class__.cls(_text=choice)
+        for choice in self._choices: yield self.__class__.cls(choice)
 
     @property
     def _choices(self): return []

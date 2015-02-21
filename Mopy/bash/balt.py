@@ -1809,6 +1809,7 @@ class UIList(wx.Panel):
         self._gList.Bind(wx.EVT_CHAR, self.OnChar)
         #--Events: Columns
         self._gList.Bind(wx.EVT_LIST_COL_END_DRAG, self.OnColumnResize)
+        # self._gList.Bind(wx.EVT_LIST_COL_BEGIN_DRAG, self.OnColumnResizeStart)
         #--Events: Items
         self._gList.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
         self._gList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
@@ -1822,6 +1823,7 @@ class UIList(wx.Panel):
         # Panel callbacks
         self.Bind(wx.EVT_SIZE,self.OnSize)
         # Columns
+        # self._gList.Bind(wx.EVT_UPDATE_UI, self.onUpdateUI) # modList flickers like crazy !
         self.PopulateColumns()
 
     # Column properties
@@ -1878,6 +1880,7 @@ class UIList(wx.Panel):
         """Panel size was changed. Change gList size to match."""
         size = self.GetClientSizeTuple()
         self._gList.SetSize(size)
+        # event.Skip() # allow ListCtrlAutoWidthMixin to resize last column
 
     def OnMouse(self,event):
         """Check mouse motion to detect right click event."""
@@ -1919,6 +1922,11 @@ class UIList(wx.Panel):
         """Column header was left clicked on. Sort on that column."""
         self.SortItems(self.cols[event.GetColumn()],'INVERT')
 
+    def OnColumnResizeStart(self, event):
+        # Veto if on auto mode:
+        if self.autoColWidths: event.Veto()
+        else: event.Skip()
+
     def OnColumnResize(self, event):
         """Column resized: enforce minimal width and save column size info."""
         colDex = event.GetColumn()
@@ -1933,12 +1941,18 @@ class UIList(wx.Panel):
             event.Skip()
         self.colWidths[colName] = width
 
+    def onUpdateUI(self,event):
+        self.autosizeColumns()
+        self._gList.resizeLastColumn(0)
+        event.Skip()
+
     # gList columns autosize---------------------------------------------------
     def autosizeColumns(self):
         if self.autoColWidths:
-            colCount = xrange(self._gList.GetColumnCount()) # - 1) leave last
+            colCount = xrange(self._gList.GetColumnCount())
             for i in colCount:
                 self._gList.SetColumnWidth(i, -self.autoColWidths)
+        # self._gList.resizeLastColumn(0) # expand last to fill
 
     #--Events skipped##:de-register callbacks? register only if hasattr(OnXXX)?
     def OnLeftDown(self,event): event.Skip()

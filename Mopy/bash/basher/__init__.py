@@ -516,6 +516,7 @@ class MasterList(_ModsSortMixin, List):
         self.loadOrderNames = []
         #--Parent init
         List.__init__(self, parent, listData, keyPrefix)
+        self.panel = self.panel.GetParent().GetParent() # Mod/Saves Details
         self._setEditedFn = setEditedFn
 
     def OnItemSelected(self, event): event.Skip()
@@ -2216,7 +2217,7 @@ class SavePanel(SashPanel):
                                                     details=self.saveDetails)
         #--Layout
         right.SetSizer(hSizer((self.saveDetails,1,wx.EXPAND)))
-        left.SetSizer(hSizer((BashFrame.saveList, 2, wx.EXPAND)))
+        left.SetSizer(hSizer((self.uiList, 2, wx.EXPAND)))
 
     def RefreshUIColors(self):
         self.saveDetails.SetFile()

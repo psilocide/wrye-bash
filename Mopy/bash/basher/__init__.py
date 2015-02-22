@@ -2518,8 +2518,8 @@ class InstallersList(balt.Tank):
             BashFrame.modList.RefreshUI()
             if BashFrame.iniList:
                 BashFrame.iniList.RefreshUI()
-        self.window.panel.frameActivated = True
-        self.window.panel.ShowPanel()
+        self.panel.frameActivated = True
+        self.panel.ShowPanel()
 
     def DeleteSelected(self, shellUI=False, noRecycle=False, _refresh=False):
         super(InstallersList, self).DeleteSelected(shellUI, noRecycle, _refresh)

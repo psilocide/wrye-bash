@@ -1420,7 +1420,7 @@ class InstallerConverter_Create(_InstallerLink):
         finally:
             progress.Destroy()
             if log:
-                self._showLog(log.out.getvalue(), title=_(u'BCF Information'))
+                self._showLog(log.out.getvalue(), title=_(u'BCF Information'), asDialog=False)
 
 #------------------------------------------------------------------------------
 # Installer Submenus ----------------------------------------------------------

@@ -1780,6 +1780,7 @@ class UIList(wx.Panel):
         self.keyPrefix = keyPrefix
         #--Columns
         self.__class__.persistent_columns = {self.default_sort_col}
+        self.colDict = {} # used in setting column sort indicator
         #--gList
         ctrlStyle = wx.LC_REPORT
         if self.__class__.editLabels: ctrlStyle |= wx.LC_EDIT_LABELS
@@ -1857,6 +1858,10 @@ class UIList(wx.Panel):
 
     #--ABSTRACT
     def OnItemSelected(self, event): raise AbstractError
+
+    def getColumns(self, item):
+        """Returns text labels for item to populate list control."""
+        raise AbstractError
 
     #--Column Menu
     def DoColumnMenu(self, event, column=None):
@@ -2083,12 +2088,11 @@ class UIList(wx.Panel):
     def PopulateColumns(self):
         """Create/name columns in ListCtrl."""
         cols = self.cols # this may be updated in List_Column.Execute()
-        self.numCols = len(cols) # used in List.PopulateItem()
-        colDict = self.colDict = {} # used in setting column sort indicator
+        numCols = len(cols)
         listCtrl = self._gList
-        for colDex in xrange(self.numCols):
+        for colDex in xrange(numCols):
             colKey = cols[colDex]
-            colDict[colKey] = colDex
+            self.colDict[colKey] = colDex
             colName = bosh.settings['bash.colNames'].get(colKey, colKey)
             colWidth = self.colWidths.get(colKey, 30)
             colAlign = wxListAligns[self.colAligns.get(colKey, 0)]
@@ -2106,8 +2110,8 @@ class UIList(wx.Panel):
                 else: # New column
                     listCtrl.InsertColumn(colDex, colName, colAlign)
                     listCtrl.SetColumnWidth(colDex, colWidth)
-        while listCtrl.GetColumnCount() > self.numCols:
-            listCtrl.DeleteColumn(self.numCols)
+        while listCtrl.GetColumnCount() > numCols:
+            listCtrl.DeleteColumn(numCols)
         self.autosizeColumns()
 
     #--Drag and Drop-----------------------------------------------------------
@@ -2134,6 +2138,13 @@ class UIList(wx.Panel):
         if len(selected) > 0:
             index = self._gList.FindItem(0, selected[0].s)
             if index != -1: self._gList.EditLabel(index)
+
+    #--Helpers ----------------------------------------------------------------
+    @staticmethod
+    def _round(siz):
+        """Round non zero sizes to 1 KB."""
+        siz = u'0' if siz == 0 else bosh.formatInteger(max(siz, 1024) / 1024)
+        return siz + u' KB'
 
 #------------------------------------------------------------------------------
 class Tank(UIList):
@@ -2208,10 +2219,6 @@ class Tank(UIList):
             index += 1
         #--Sort
         self.SortItems()
-
-    def getColumns(self, item): ##: to UIList !
-        """Returns text labels for item to populate list control."""
-        raise AbstractError
 
     def RefreshUI(self,items='ALL',details='SAME'):
         """Refreshes UI for specified file."""
